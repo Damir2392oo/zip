@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minecraft Bedrock Behavior Pack Generator</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a4d2e 0%, #2d5a3d 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 40px;
+            max-width: 700px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+        h1 {
+            color: #1a4d2e;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        .info-box {
+            background: #f0f8f4;
+            border-left: 4px solid #2d5a3d;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+        .info-box h3 {
+            color: #1a4d2e;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+        .info-box ul {
+            margin-left: 20px;
+            color: #333;
+        }
+        .info-box li {
+            margin-bottom: 5px;
+        }
+        .warning-box {
+            background: #fff4e6;
+            border-left: 4px solid #ff9800;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+        .warning-box h3 {
+            color: #e65100;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+        .uuid-box {
+            background: #f5f5f5;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+        }
+        .uuid-box div {
+            margin-bottom: 8px;
+            word-break: break-all;
+        }
+        .uuid-box strong {
+            color: #1a4d2e;
+        }
+        button {
+            background: #2d5a3d;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 100%;
+            font-weight: bold;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background: #1a4d2e;
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+            text-align: center;
+            font-weight: bold;
+        }
+        code {
+            background: #f5f5f5;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎮 Minecraft Bedrock Behavior Pack</h1>
+        <p class="subtitle">Custom Crafting Recipes for Geyser + Paper Server</p>
+
+        <div class="info-box">
+            <h3>📦 Pack Contents</h3>
+            <ul>
+                <li><strong>Recipe 1:</strong> White Wool + Shears → 3 White Carpets</li>
+                <li><strong>Recipe 2:</strong> 3 White Carpets → 1 Ladder</li>
+                <li><strong>Version:</strong> Bedrock 1.21.0+</li>
+                <li><strong>Compatible:</strong> Geyser remote_resource_pack</li>
+            </ul>
+        </div>
+
+        <div class="warning-box">
+            <h3>⚠️ Note: Shears Durability</h3>
+            <p>Bedrock's recipe system doesn't support durability loss in shapeless recipes. The shears will be consumed (not lose durability). This is a Bedrock limitation.</p>
+        </div>
+
+        <div class="uuid-box" id="uuidBox">
+            <strong>Generated UUIDs:</strong><br>
+            <div id="headerUuid"></div>
+            <div id="moduleUuid"></div>
+        </div>
+
+        <button id="downloadBtn" onclick="generateAndDownload()">
+            ⬇️ Download Behavior Pack ZIP
+        </button>
+
+        <div id="successMsg" style="display: none;" class="success">
+            ✅ ZIP file downloaded successfully! Upload to GitHub and add to Geyser config.yml
+        </div>
+
+        <div class="info-box" style="margin-top: 20px;">
+            <h3>🚀 Installation Steps</h3>
+            <ul>
+                <li>Upload the downloaded ZIP to GitHub or file hosting</li>
+                <li>Get the direct download URL</li>
+                <li>Add URL to Geyser's <code>config.yml</code> → <code>remote-resource-pack</code></li>
+                <li>Restart your Paper server</li>
+                <li>Bedrock players auto-download on join!</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // Generate UUID v4
+        function generateUUID() {
+            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                const r = Math.random() * 16 | 0;
+                const v = c === 'x' ? r : (r & 0x3 | 0x8);
+                return v.toString(16);
+            });
+        }
+
+        // Generate UUIDs on page load
+        const headerUUID = generateUUID();
+        const moduleUUID = generateUUID();
+        
+        document.getElementById('headerUuid').textContent = 'Header: ' + headerUUID;
+        document.getElementById('moduleUuid').textContent = 'Module: ' + moduleUUID;
+
+        async function generateAndDownload() {
+            const btn = document.getElementById('downloadBtn');
+            btn.disabled = true;
+            btn.textContent = '⏳ Generating ZIP...';
+
+            // Create file contents
+            const manifest = {
+                format_version: 2,
+                header: {
+                    name: "Custom Crafting Recipes",
+                    description: "Adds custom wool-to-carpet and carpet-to-ladder recipes",
+                    uuid: headerUUID,
+                    version: [1, 0, 0],
+                    min_engine_version: [1, 21, 0]
+                },
+                modules: [
+                    {
+                        type: "data",
+                        uuid: moduleUUID,
+                        version: [1, 0, 0]
+                    }
+                ]
+            };
+
+            const woolToCarpet = {
+                format_version: "1.21.0",
+                "minecraft:recipe_shapeless": {
+                    description: {
+                        identifier: "minecraft:wool_to_carpet"
+                    },
+                    tags: ["crafting_table"],
+                    ingredients: [
+                        { item: "minecraft:white_wool" },
+                        { item: "minecraft:shears" }
+                    ],
+                    result: {
+                        item: "minecraft:white_carpet",
+                        count: 3
+                    }
+                }
+            };
+
+            const carpetToLadder = {
+                format_version: "1.21.0",
+                "minecraft:recipe_shapeless": {
+                    description: {
+                        identifier: "minecraft:carpet_to_ladder"
+                    },
+                    tags: ["crafting_table"],
+                    ingredients: [
+                        { item: "minecraft:white_carpet" },
+                        { item: "minecraft:white_carpet" },
+                        { item: "minecraft:white_carpet" }
+                    ],
+                    result: {
+                        item: "minecraft:ladder",
+                        count: 1
+                    }
+                }
+            };
+
+            // Create ZIP
+            const zip = new JSZip();
+            
+            // Add manifest
+            zip.file("manifest.json", JSON.stringify(manifest, null, 2));
+            
+            // Add recipes
+            const recipesFolder = zip.folder("recipes");
+            recipesFolder.file("wool_to_carpet.json", JSON.stringify(woolToCarpet, null, 2));
+            recipesFolder.file("carpet_to_ladder.json", JSON.stringify(carpetToLadder, null, 2));
+
+            // Generate and download
+            try {
+                const content = await zip.generateAsync({ type: "blob" });
+                const url = URL.createObjectURL(content);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = 'custom_recipes_bp.zip';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
+
+                btn.textContent = '✅ Downloaded! Click to download again';
+                btn.disabled = false;
+                document.getElementById('successMsg').style.display = 'block';
+            } catch (error) {
+                btn.textContent = '❌ Error - Try again';
+                btn.disabled = false;
+                alert('Error generating ZIP: ' + error.message);
+            }
+        }
+    </script>
+</body>
+</html>
